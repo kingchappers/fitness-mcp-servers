@@ -1,0 +1,32 @@
+# Credentials & secrets
+.env
+.env.*
+*.env
+
+# Garmin tokens
+.garminconnect/
+garminconnect/
+
+# MFP cookies
+*cookies*.txt
+*session*.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+*.egg
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
