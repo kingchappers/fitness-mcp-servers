@@ -12,6 +12,9 @@ dependencies = [
     "garminconnect (>=0.2.38,<0.3.0)"
 ]
 
+[project.scripts]
+mcp-garmin = "mcp_garmin.server:main"
+
 [tool.poetry]
 packages = [{include = "mcp_garmin", from = "src"}]
 
