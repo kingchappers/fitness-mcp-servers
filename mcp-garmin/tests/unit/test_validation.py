@@ -25,3 +25,13 @@ def test_empty_string_raises() -> None:
 def test_custom_param_name_in_error() -> None:
     with pytest.raises(ValueError, match="start_date"):
         validate_date("bad", param_name="start_date")
+
+
+def test_impossible_month_raises() -> None:
+    with pytest.raises(ValueError, match="real calendar date"):
+        validate_date("2026-13-01")
+
+
+def test_impossible_day_raises() -> None:
+    with pytest.raises(ValueError, match="real calendar date"):
+        validate_date("2026-02-30")
