@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  # Discovers any subdirectory containing a pyproject.toml.
+  # Adding a new server directory automatically includes it in all checks.
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      servers: ${{ steps.find.outputs.servers }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find server directories
+        id: find
+        run: |
+          servers=$(find . -mindepth 2 -maxdepth 2 -name pyproject.toml -exec dirname {} \; \
+            | sed 's|^\./||' \
+            | jq -R . | jq -s -c .)
+          echo "servers=$servers" >> "$GITHUB_OUTPUT"
+
+  lint:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        server: ${{ fromJson(needs.discover.outputs.servers) }}
+    env:
+      SERVER_DIR: ${{ matrix.server }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Install dependencies
+        run: cd "$SERVER_DIR" && poetry install
+      - name: Ruff check
+        run: cd "$SERVER_DIR" && poetry run ruff check .
+      - name: Ruff format check
+        run: cd "$SERVER_DIR" && poetry run ruff format --check .
+
+  test:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        server: ${{ fromJson(needs.discover.outputs.servers) }}
+    env:
+      SERVER_DIR: ${{ matrix.server }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Install dependencies
+        run: cd "$SERVER_DIR" && poetry install
+      - name: Run unit tests
+        run: cd "$SERVER_DIR" && poetry run pytest tests/unit
+
+  security:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        server: ${{ fromJson(needs.discover.outputs.servers) }}
+    env:
+      SERVER_DIR: ${{ matrix.server }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Install dependencies
+        run: cd "$SERVER_DIR" && poetry install
+      - name: Bandit (SAST)
+        run: cd "$SERVER_DIR" && poetry run bandit -r src/
+      - name: pip-audit (dependency vulnerabilities)
+        run: cd "$SERVER_DIR" && poetry run pip-audit
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
