@@ -1,0 +1,59 @@
+[project]
+name = "mcp-myfitnesspal"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "kingchappers", email = "sam.chapman@outlook.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "mcp (>=1.26.0,<2.0.0)",
+    "myfitnesspal (==2.1.2)",
+]
+
+[project.scripts]
+mcp-myfitnesspal = "mcp_myfitnesspal.server:main"
+
+[tool.poetry]
+packages = [{include = "mcp_myfitnesspal", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.15.1,<0.16.0)",
+    "mypy (>=1.19.1,<2.0.0)",
+    "pytest (>=9.0.2,<10.0.0)",
+    "pytest-asyncio (>=1.3.0,<2.0.0)",
+    "bandit (>=1.9.3,<2.0.0)",
+    "pip-audit (>=2.10.0,<3.0.0)",
+    "playwright (>=1.50.0,<2.0.0)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "S", "B", "UP"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]
