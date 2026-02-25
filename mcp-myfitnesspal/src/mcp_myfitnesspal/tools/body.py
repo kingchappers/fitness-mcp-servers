@@ -15,9 +15,7 @@ def _json_result(data: Any) -> list[TextContent]:
     return [TextContent(type="text", text=json.dumps(data, indent=2))]
 
 
-def get_weight_log(
-    client: myfitnesspal.Client, arguments: dict[str, str]
-) -> list[TextContent]:
+def get_weight_log(client: myfitnesspal.Client, arguments: dict[str, str]) -> list[TextContent]:
     start_str = arguments["start_date"]
     end_str = arguments["end_date"]
     validate_date_range(start_str, end_str)

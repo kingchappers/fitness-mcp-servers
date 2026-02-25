@@ -4,6 +4,7 @@
 Opens a Chromium window. Log in to MyFitnessPal, then press Enter.
 Saves cookies to the path set by MFP_COOKIE_PATH (default: ~/.mfp/cookies.txt).
 """
+
 from __future__ import annotations
 
 import os
