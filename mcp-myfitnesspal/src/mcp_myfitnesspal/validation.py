@@ -26,5 +26,5 @@ def validate_date_range(start: str, end: str) -> None:
     end_dt = _date.fromisoformat(end)
     if start_dt > end_dt:
         raise ValueError(f"start_date {start!r} must be on or before end_date {end!r}.")
-    if (end_dt - start_dt).days > 365:
+    if (end_dt - start_dt).days >= 365:
         raise ValueError(f"Date range exceeds 365 days ({start} to {end}).")
