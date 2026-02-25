@@ -120,6 +120,45 @@ Use ISO 8601 strings throughout: `"YYYY-MM-DD"`
 - Return meaningful error messages as TextContent rather than raising
 - Auth failures should return a clear message indicating cookies/tokens need refreshing
 
+### Response size — REQUIRED check for every new or modified tool
+
+MCP tool responses feed directly into the context window. A response that is too large will either overflow the context or force expensive workarounds. **Before merging any new or modified tool, verify its real response size.**
+
+**How to check:**
+
+Call the tool via its MCP tool definition and note whether the result is truncated or flagged as oversized. Alternatively, call the underlying Garmin library method directly and measure:
+
+```python
+import json, garminconnect, os
+client = garminconnect.Garmin(...)
+client.login()
+data = client.get_whatever(date)
+print(len(json.dumps(data)))   # characters — aim for < 20,000
+```
+
+**Thresholds:**
+
+| Size | Action |
+|------|--------|
+| < 20 000 chars | Fine — no action needed |
+| 20 000 – 100 000 chars | Warning — consider whether all fields are useful |
+| > 100 000 chars | Must reduce before the tool is usable |
+
+**How to reduce — in order of preference:**
+
+1. **Strip per-epoch time-series arrays.** Garmin responses often contain minute-by-minute arrays (HR, SpO2, stress, body battery, respiration, movement) that add hundreds of KB while their aggregate values are already present as scalars in the summary object. Remove them with a `_summarize_*` function that allowlists or blocklists keys before returning. See `mcp-garmin/src/mcp_garmin/tools/daily.py::_summarize_sleep` for the established pattern.
+
+2. **Keep only semantically useful fields.** If a response has both a detailed time-series and a pre-computed summary (e.g. `dailySleepDTO` contains `avgHeartRate`, `averageSpO2Value`, etc.), drop the time-series — the summary is what matters for conversational queries.
+
+3. **Add a `_summarize_*` function, not inline filtering.** Keep the transformation in a named function so it is testable and the intent is documented. Test that (a) stripped keys are absent, (b) important summary keys are present, and (c) any small arrays worth keeping (e.g. `sleepLevels`) are retained.
+
+**Known large responses in mcp-garmin:**
+
+| Tool | Raw size | Fix applied |
+|------|----------|-------------|
+| `get_sleep` | ~273 000 chars | `_summarize_sleep` strips 8 time-series arrays |
+| `get_heart_rate` | ~30 000 chars | Fits; monitor if it grows |
+
 ### Security
 **CRITICAL: Consult `SECURITY.md` before implementing.**
 

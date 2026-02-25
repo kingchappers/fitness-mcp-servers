@@ -24,9 +24,36 @@ def get_heart_rate(client: Garmin, arguments: dict[str, str]) -> list[TextConten
     return _json_result(client.get_heart_rates(arguments["date"]))
 
 
+_SLEEP_TIMESERIES_KEYS = frozenset(
+    [
+        "sleepMovement",
+        "sleepHeartRate",
+        "sleepBodyBattery",
+        "sleepStress",
+        "sleepRestlessMoments",
+        "hrvData",
+        "wellnessEpochRespirationDataDTOList",
+        "wellnessEpochSPO2DataDTOList",
+    ]
+)
+
+
+def _summarize_sleep(data: Any) -> Any:
+    """Strip per-epoch time-series arrays that balloon the response to 200k+.
+
+    Summary statistics for all dropped arrays are already present in
+    ``dailySleepDTO`` or as top-level scalar fields (e.g. ``avgOvernightHrv``,
+    ``restingHeartRate``, ``bodyBatteryChange``).  ``sleepLevels`` (sleep-stage
+    transitions, ~24 items) is retained as it provides useful timeline context.
+    """
+    if not isinstance(data, dict):
+        return data
+    return {k: v for k, v in data.items() if k not in _SLEEP_TIMESERIES_KEYS}
+
+
 def get_sleep(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
     validate_date(arguments["date"])
-    return _json_result(client.get_sleep_data(arguments["date"]))
+    return _json_result(_summarize_sleep(client.get_sleep_data(arguments["date"])))
 
 
 def _date_tool(name: str, description: str) -> Tool:

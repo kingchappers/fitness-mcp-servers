@@ -19,6 +19,12 @@ cd mcp-garmin
 poetry install
 ```
 
+Verify it worked — this should print the server version and exit cleanly:
+
+```bash
+poetry run mcp-garmin --help 2>&1 || echo "install OK"
+```
+
 ### 2. Authenticate with Garmin Connect
 
 Run the one-time login script. It prompts for your credentials interactively — they are never stored on disk.
@@ -33,11 +39,35 @@ OAuth tokens are saved to `~/.garminconnect` with `600` permissions. The MCP ser
 
 ### 3. Register with Claude Code
 
+The `claude mcp add` command needs **absolute paths** for both the project directory and the Poetry executable. Using relative paths or relying on `$PATH` is the most common reason this step fails, because Claude Code launches the server in a subprocess that may not inherit your shell's PATH.
+
+**Find the paths you need:**
+
 ```bash
-claude mcp add garmin -- poetry --directory /path/to/mcp-garmin run mcp-garmin
+# Full path to your mcp-garmin directory
+pwd   # run this from inside the mcp-garmin directory
+
+# Full path to the poetry executable
+which poetry
 ```
 
-Restart Claude Code to pick up the new server.
+**Register the server** (substitute your actual paths):
+
+```bash
+claude mcp add garmin -- /opt/homebrew/bin/poetry --directory /Users/yourname/Projects/fitness-mcp-servers/mcp-garmin run mcp-garmin
+```
+
+**Verify it was registered:**
+
+```bash
+claude mcp list
+```
+
+You should see `garmin` in the output with a `connected` status after restarting Claude Code.
+
+**Restart Claude Code** to pick up the new server. The server starts fresh on each session — no background process to manage.
+
+> If your Poetry is installed somewhere other than `/opt/homebrew/bin/poetry` (common on Linux or non-Homebrew installs), use the path returned by `which poetry` above.
 
 ## Tools
 
@@ -115,9 +145,33 @@ poetry run pip-audit
 
 ## Troubleshooting
 
+### MCP server not connecting
+
+**`claude mcp list` shows the server as `failed` or it doesn't appear:**
+
+1. Check that both paths in the `claude mcp add` command are absolute. Re-run `which poetry` and `pwd` from inside `mcp-garmin/` and re-register if needed:
+   ```bash
+   claude mcp remove garmin
+   claude mcp add garmin -- /absolute/path/to/poetry --directory /absolute/path/to/mcp-garmin run mcp-garmin
+   ```
+
+2. Test that the server starts on its own before involving Claude Code:
+   ```bash
+   /opt/homebrew/bin/poetry --directory /absolute/path/to/mcp-garmin run mcp-garmin
+   ```
+   It should hang (waiting for MCP stdio input). Press `Ctrl-C` to stop. If it errors, fix the error before re-registering.
+
+3. Make sure you've run `poetry install` inside the `mcp-garmin` directory and that `poetry run mcp-garmin` works standalone.
+
+4. After any change to the registration, **restart Claude Code completely** — the server list is read at startup.
+
+### Authentication errors
+
 **"Garmin tokens not found"** — Run `scripts/login.py` to authenticate.
 
 **"Login failed"** — Tokens have expired. Re-run `scripts/login.py`.
+
+### Data issues
 
 **Tool returns empty data** — Some metrics require a compatible Garmin device (e.g. HRV requires a watch with HRV tracking). Check that your device records the relevant metric.
 
