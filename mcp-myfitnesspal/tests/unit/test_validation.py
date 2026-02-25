@@ -1,5 +1,6 @@
 # tests/unit/test_validation.py
 import pytest
+
 from mcp_myfitnesspal.validation import validate_date, validate_date_range
 
 

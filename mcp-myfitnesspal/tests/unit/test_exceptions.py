@@ -1,4 +1,5 @@
 import pytest
+
 from mcp_myfitnesspal.exceptions import MFPShapeError, validate_day_shape
 
 
