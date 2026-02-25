@@ -95,9 +95,7 @@ def test_get_nutrition_summary_iterates_range() -> None:
 def test_get_nutrition_summary_rejects_bad_dates() -> None:
     client = MagicMock()
     with pytest.raises(ValueError, match="start_date"):
-        DISPATCH["get_nutrition_summary"](
-            client, {"start_date": "bad", "end_date": "2026-02-25"}
-        )
+        DISPATCH["get_nutrition_summary"](client, {"start_date": "bad", "end_date": "2026-02-25"})
 
 
 # --- TOOLS list ---
