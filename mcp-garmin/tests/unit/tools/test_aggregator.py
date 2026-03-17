@@ -6,6 +6,7 @@ ALL_EXPECTED = {
     "get_sleep",
     "get_body_battery",
     "get_activities",
+    "get_activity_details",
     "get_hrv",
     "get_stress",
     "get_training_readiness",
