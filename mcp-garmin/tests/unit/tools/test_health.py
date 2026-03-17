@@ -13,9 +13,10 @@ EXPECTED_TOOLS = {
     "get_training_status",
     "get_respiration",
     "get_spo2",
+    "get_menstrual_cycle",
 }
 
-METHOD_MAP = {
+SINGLE_DATE_METHOD_MAP = {
     "get_hrv": "get_hrv_data",
     "get_stress": "get_stress_data",
     "get_training_readiness": "get_training_readiness",
@@ -26,21 +27,21 @@ METHOD_MAP = {
 }
 
 
-def test_tools_list_contains_all_seven() -> None:
+def test_tools_list_contains_all() -> None:
     names = {t.name for t in TOOLS}
     assert names == EXPECTED_TOOLS
 
 
-@pytest.mark.parametrize("tool_name,method_name", METHOD_MAP.items())
-def test_tool_calls_correct_method(tool_name: str, method_name: str) -> None:
+@pytest.mark.parametrize("tool_name,method_name", SINGLE_DATE_METHOD_MAP.items())
+def test_single_date_tool_calls_correct_method(tool_name: str, method_name: str) -> None:
     client = MagicMock()
     getattr(client, method_name).return_value = {"value": 42}
     DISPATCH[tool_name](client, {"date": "2026-02-20"})
     getattr(client, method_name).assert_called_once_with("2026-02-20")
 
 
-@pytest.mark.parametrize("tool_name,method_name", METHOD_MAP.items())
-def test_tool_returns_json(tool_name: str, method_name: str) -> None:
+@pytest.mark.parametrize("tool_name,method_name", SINGLE_DATE_METHOD_MAP.items())
+def test_single_date_tool_returns_json(tool_name: str, method_name: str) -> None:
     client = MagicMock()
     getattr(client, method_name).return_value = {"value": 42}
     result = DISPATCH[tool_name](client, {"date": "2026-02-20"})
@@ -48,8 +49,40 @@ def test_tool_returns_json(tool_name: str, method_name: str) -> None:
     assert data["value"] == 42
 
 
-@pytest.mark.parametrize("tool_name", EXPECTED_TOOLS)
-def test_tool_rejects_bad_date(tool_name: str) -> None:
+@pytest.mark.parametrize("tool_name", SINGLE_DATE_METHOD_MAP)
+def test_single_date_tool_rejects_bad_date(tool_name: str) -> None:
     client = MagicMock()
     with pytest.raises(ValueError, match="YYYY-MM-DD"):
         DISPATCH[tool_name](client, {"date": "not-valid"})
+
+
+# --- get_menstrual_cycle ---
+
+
+def test_get_menstrual_cycle_calls_correct_method() -> None:
+    client = MagicMock()
+    client.get_menstrual_data.return_value = []
+    DISPATCH["get_menstrual_cycle"](client, {"start_date": "2026-02-01", "end_date": "2026-02-28"})
+    client.get_menstrual_data.assert_called_once_with("2026-02-01", "2026-02-28")
+
+
+def test_get_menstrual_cycle_returns_json() -> None:
+    client = MagicMock()
+    client.get_menstrual_data.return_value = [{"startDate": "2026-02-01", "phase": "menstrual"}]
+    result = DISPATCH["get_menstrual_cycle"](
+        client, {"start_date": "2026-02-01", "end_date": "2026-02-28"}
+    )
+    data = json.loads(result[0].text)
+    assert data[0]["phase"] == "menstrual"
+
+
+def test_get_menstrual_cycle_rejects_bad_start_date() -> None:
+    client = MagicMock()
+    with pytest.raises(ValueError, match="start_date"):
+        DISPATCH["get_menstrual_cycle"](client, {"start_date": "bad", "end_date": "2026-02-28"})
+
+
+def test_get_menstrual_cycle_rejects_bad_end_date() -> None:
+    client = MagicMock()
+    with pytest.raises(ValueError, match="end_date"):
+        DISPATCH["get_menstrual_cycle"](client, {"start_date": "2026-02-01", "end_date": "bad"})

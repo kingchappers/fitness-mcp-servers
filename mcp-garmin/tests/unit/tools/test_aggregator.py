@@ -14,6 +14,7 @@ ALL_EXPECTED = {
     "get_training_status",
     "get_respiration",
     "get_spo2",
+    "get_menstrual_cycle",
     "get_body_composition",
     "get_weigh_ins",
     "get_endurance_score",

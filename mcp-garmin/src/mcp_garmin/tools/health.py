@@ -38,6 +38,27 @@ def _single_date_handler(
     return handler
 
 
+def _date_range_tool(name: str, description: str) -> Tool:
+    return Tool(
+        name=name,
+        description=description,
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "start_date": {"type": "string", "description": "Start date in YYYY-MM-DD format"},
+                "end_date": {"type": "string", "description": "End date in YYYY-MM-DD format"},
+            },
+            "required": ["start_date", "end_date"],
+        },
+    )
+
+
+def get_menstrual_cycle(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
+    validate_date(arguments["start_date"], param_name="start_date")
+    validate_date(arguments["end_date"], param_name="end_date")
+    return _json_result(client.get_menstrual_data(arguments["start_date"], arguments["end_date"]))
+
+
 TOOLS: list[Tool] = [
     _date_tool("get_hrv", "Heart Rate Variability data for the day."),
     _date_tool("get_stress", "Detailed stress data throughout the day."),
@@ -46,6 +67,10 @@ TOOLS: list[Tool] = [
     _date_tool("get_training_status", "Current training status and load."),
     _date_tool("get_respiration", "Respiration rate data throughout the day."),
     _date_tool("get_spo2", "Blood oxygen saturation (SpO2) data throughout the day."),
+    _date_range_tool(
+        "get_menstrual_cycle",
+        "Menstrual cycle tracking: phase, symptoms, and cycle stats.",
+    ),
 ]
 
 DISPATCH: dict[str, Callable[[Garmin, dict[str, str]], list[TextContent]]] = {
@@ -56,4 +81,5 @@ DISPATCH: dict[str, Callable[[Garmin, dict[str, str]], list[TextContent]]] = {
     "get_training_status": _single_date_handler("get_training_status"),
     "get_respiration": _single_date_handler("get_respiration_data"),
     "get_spo2": _single_date_handler("get_spo2_data"),
+    "get_menstrual_cycle": get_menstrual_cycle,
 }
