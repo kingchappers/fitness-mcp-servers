@@ -16,6 +16,7 @@ ALL_EXPECTED = {
     "get_weigh_ins",
     "get_endurance_score",
     "get_race_predictions",
+    "get_personal_records",
     "get_hydration",
 }
 

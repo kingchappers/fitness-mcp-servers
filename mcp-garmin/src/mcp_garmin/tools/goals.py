@@ -42,15 +42,25 @@ def _range_handler(
     return handler
 
 
+def get_personal_records(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
+    return _json_result(client.get_personal_record())
+
+
 TOOLS: list[Tool] = [
     _date_range_tool("get_endurance_score", "Endurance score trend over a date range."),
     _date_range_tool(
         "get_race_predictions",
         "Predicted race finish times (5K, 10K, half marathon, marathon) over a date range.",
     ),
+    Tool(
+        name="get_personal_records",
+        description="All-time personal records for running, cycling, and other activities.",
+        inputSchema={"type": "object", "properties": {}, "required": []},
+    ),
 ]
 
 DISPATCH: dict[str, Callable[[Garmin, dict[str, str]], list[TextContent]]] = {
     "get_endurance_score": _range_handler("get_endurance_score"),
     "get_race_predictions": _range_handler("get_race_predictions"),
+    "get_personal_records": get_personal_records,
 }
