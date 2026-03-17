@@ -77,7 +77,7 @@ TOOLS: list[Tool] = [
     ),
     Tool(
         name="get_activity_details",
-        description="Full details for activity: splits, laps, and HR zone breakdown.",
+        description="Splits, laps, and HR zones for one activity. Use get_activities for IDs.",
         inputSchema={
             "type": "object",
             "properties": {

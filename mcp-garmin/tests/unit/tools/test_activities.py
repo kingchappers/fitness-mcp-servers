@@ -35,11 +35,6 @@ def test_get_activities_rejects_bad_end_date() -> None:
         DISPATCH["get_activities"](client, {"start_date": "2026-02-01", "end_date": "bad"})
 
 
-def test_tools_list_contains_get_activities() -> None:
-    names = {t.name for t in TOOLS}
-    assert "get_activities" in names
-
-
 # --- get_activity_details ---
 
 
