@@ -59,6 +59,7 @@ def get_sleep(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
 def get_body_battery(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
     validate_date(arguments["date"])
     date = arguments["date"]
+    # get_body_battery takes a date range; pass the same date twice for a single day.
     return _json_result(client.get_body_battery(date, date))
 
 
