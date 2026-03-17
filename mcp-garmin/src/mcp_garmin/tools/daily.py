@@ -56,6 +56,12 @@ def get_sleep(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
     return _json_result(_summarize_sleep(client.get_sleep_data(arguments["date"])))
 
 
+def get_body_battery(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
+    validate_date(arguments["date"])
+    date = arguments["date"]
+    return _json_result(client.get_body_battery(date, date))
+
+
 def _date_tool(name: str, description: str) -> Tool:
     return Tool(
         name=name,
@@ -80,10 +86,12 @@ TOOLS: list[Tool] = [
     _date_tool(
         "get_sleep", "Sleep data: duration, stages (deep/light/REM/awake), and sleep score."
     ),
+    _date_tool("get_body_battery", "Body battery charge and drain data for the day."),
 ]
 
 DISPATCH: dict[str, Callable[[Garmin, dict[str, str]], list[TextContent]]] = {
     "get_daily_stats": get_daily_stats,
     "get_heart_rate": get_heart_rate,
     "get_sleep": get_sleep,
+    "get_body_battery": get_body_battery,
 }

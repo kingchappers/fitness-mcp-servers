@@ -115,9 +115,31 @@ def test_get_sleep_rejects_bad_date() -> None:
         DISPATCH["get_sleep"](client, {"date": "2026/02/20"})
 
 
+# --- get_body_battery ---
+
+
+def test_get_body_battery_calls_correct_method() -> None:
+    client = make_client(get_body_battery=[{"date": "2026-02-20", "charged": 80, "drained": 30}])
+    DISPATCH["get_body_battery"](client, {"date": "2026-02-20"})
+    client.get_body_battery.assert_called_once_with("2026-02-20", "2026-02-20")
+
+
+def test_get_body_battery_returns_json() -> None:
+    client = make_client(get_body_battery=[{"date": "2026-02-20", "charged": 80, "drained": 30}])
+    result = DISPATCH["get_body_battery"](client, {"date": "2026-02-20"})
+    data = json.loads(result[0].text)
+    assert data[0]["charged"] == 80
+
+
+def test_get_body_battery_rejects_bad_date() -> None:
+    client = MagicMock()
+    with pytest.raises(ValueError, match="YYYY-MM-DD"):
+        DISPATCH["get_body_battery"](client, {"date": "bad"})
+
+
 # --- TOOLS list ---
 
 
-def test_tools_list_contains_all_three() -> None:
+def test_tools_list_contains_all() -> None:
     names = {t.name for t in TOOLS}
-    assert names == {"get_daily_stats", "get_heart_rate", "get_sleep"}
+    assert names == {"get_daily_stats", "get_heart_rate", "get_sleep", "get_body_battery"}

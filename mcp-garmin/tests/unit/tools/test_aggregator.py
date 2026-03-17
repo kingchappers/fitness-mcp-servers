@@ -4,6 +4,7 @@ ALL_EXPECTED = {
     "get_daily_stats",
     "get_heart_rate",
     "get_sleep",
+    "get_body_battery",
     "get_activities",
     "get_hrv",
     "get_stress",
