@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 from typing import Any
 
 from garminconnect import Garmin  # type: ignore[import-untyped]
 from mcp.types import TextContent, Tool
 
+from mcp_garmin.tools._shared import _json_result
 from mcp_garmin.validation import validate_date
-
-
-def _json_result(data: Any) -> list[TextContent]:
-    return [TextContent(type="text", text=json.dumps(data, indent=2))]
 
 
 def get_daily_stats(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
