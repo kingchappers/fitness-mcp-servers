@@ -4,7 +4,9 @@ ALL_EXPECTED = {
     "get_daily_stats",
     "get_heart_rate",
     "get_sleep",
+    "get_body_battery",
     "get_activities",
+    "get_activity_details",
     "get_hrv",
     "get_stress",
     "get_training_readiness",
@@ -12,10 +14,12 @@ ALL_EXPECTED = {
     "get_training_status",
     "get_respiration",
     "get_spo2",
+    "get_menstrual_cycle",
     "get_body_composition",
     "get_weigh_ins",
     "get_endurance_score",
     "get_race_predictions",
+    "get_personal_records",
     "get_hydration",
 }
 

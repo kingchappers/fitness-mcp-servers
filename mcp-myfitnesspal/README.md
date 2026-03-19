@@ -17,20 +17,22 @@ Uses the unofficial [`python-myfitnesspal`](https://github.com/coddingtonbear/py
 ```bash
 cd mcp-myfitnesspal
 poetry install
-poetry run playwright install chromium
 ```
-
-Playwright is used by the login script to capture browser session cookies automatically.
 
 ### 2. Authenticate with MyFitnessPal
 
-Run the one-time login script. It opens a headless browser, logs in to MyFitnessPal, and saves the session cookies to disk.
+Run the one-time login script:
 
 ```bash
 poetry run python scripts/login.py
 ```
 
-The script will print the path where cookies were saved — set that path as your `MFP_COOKIE_PATH` environment variable when registering the server in step 3.
+The script will:
+1. Open your browser to the MyFitnessPal login page
+2. Guide you to install the [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) Chrome extension (if needed)
+3. Watch `~/Downloads` for the exported cookie file and install it automatically
+
+When it finishes, it prints the exact `claude mcp add` command for step 3.
 
 > Re-run this script if the server reports an authentication or cookie error (cookies expire periodically).
 
