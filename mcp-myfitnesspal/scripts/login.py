@@ -116,7 +116,7 @@ def _default_browser_bundle_id() -> str:
         for handler in data.get("LSHandlers", []):
             if handler.get("LSHandlerURLScheme") == "https":
                 return str(handler.get("LSHandlerRoleAll", "")).lower()
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001, S110
         pass
     return ""
 

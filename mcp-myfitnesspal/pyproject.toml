@@ -10,6 +10,7 @@ requires-python = ">=3.12,<4.0"
 dependencies = [
     "mcp (>=1.26.0,<2.0.0)",
     "myfitnesspal (==2.1.2)",
+    "pyjwt (>=2.12.0)",
 ]
 
 [project.scripts]
