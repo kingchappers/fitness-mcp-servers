@@ -107,8 +107,7 @@ def main() -> None:
 def _default_browser_bundle_id() -> str:
     """Return the macOS bundle ID of the default HTTPS handler, or '' on failure."""
     plist_path = Path.home() / (
-        "Library/Preferences/com.apple.LaunchServices/"
-        "com.apple.launchservices.secure.plist"
+        "Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist"
     )
     try:
         with plist_path.open("rb") as f:
