@@ -65,9 +65,10 @@ def _summarize_activity_details(data: Any) -> Any:
 
 
 def get_activity_details(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
-    return _json_result(
-        _summarize_activity_details(client.get_activity_details(arguments["activity_id"]))
-    )
+    activity_id = arguments.get("activity_id", "")
+    if not activity_id:
+        raise ValueError("activity_id is required and must not be empty.")
+    return _json_result(_summarize_activity_details(client.get_activity_details(activity_id)))
 
 
 TOOLS: list[Tool] = [

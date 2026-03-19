@@ -74,6 +74,12 @@ def test_get_activity_details_strips_timeseries() -> None:
     assert data["distance"] == 5000.0
 
 
+def test_get_activity_details_rejects_missing_activity_id() -> None:
+    client = MagicMock()
+    with pytest.raises(ValueError, match="activity_id"):
+        DISPATCH["get_activity_details"](client, {})
+
+
 def test_tools_list_contains_both_activity_tools() -> None:
     names = {t.name for t in TOOLS}
     assert "get_activities" in names
