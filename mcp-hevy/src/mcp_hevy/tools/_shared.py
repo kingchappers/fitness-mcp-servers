@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import quote as _quote
 
 from mcp.types import TextContent, Tool
 
@@ -39,3 +40,7 @@ def _id_tool(name: str, description: str, id_param: str, id_description: str) ->
             "required": [id_param],
         },
     )
+
+
+def _url_encode_id(value: str) -> str:
+    return _quote(value, safe="")

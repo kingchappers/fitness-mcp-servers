@@ -40,6 +40,12 @@ def test_get_routine_calls_correct_path() -> None:
     assert json.loads(result[0].text) == {"id": "r1"}
 
 
+def test_get_routine_url_encodes_routine_id() -> None:
+    client = make_client({"id": "abc/def"})
+    DISPATCH["get_routine"](client, {"routine_id": "abc/def"})
+    client.get.assert_called_once_with("/v1/routines/abc%2Fdef", params=None)
+
+
 def test_get_routine_folders_calls_correct_endpoint_with_defaults() -> None:
     client = make_client({"routine_folders": []})
     DISPATCH["get_routine_folders"](client, {})
