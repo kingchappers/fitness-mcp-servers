@@ -1,22 +1,24 @@
 # fitness-mcp-servers
 
-Two MCP servers that give Claude real-time access to your personal fitness and nutrition data. Ask Claude to analyse your training load, nutrition trends, sleep quality, body composition, or anything across both data sources — it synthesises the data in conversation.
+Three MCP servers that give Claude real-time access to your personal fitness and nutrition data. Ask Claude to analyse your training load, nutrition trends, sleep quality, body composition, or anything across all data sources — it synthesises the data in conversation.
 
 | Server | Data source | Reliability |
 |--------|------------|-------------|
 | [`mcp-garmin`](./mcp-garmin/) | Garmin Connect (workouts, sleep, HR, HRV, training load, body composition) | High |
 | [`mcp-myfitnesspal`](./mcp-myfitnesspal/) | MyFitnessPal (nutrition diary, macros, weight log) | Low — cookie scraping, may break without warning |
+| [`mcp-hevy`](./mcp-hevy/) | Hevy (strength workouts, routines, exercise history, body measurements) | High — official API |
 
 ## Architecture
 
-Each server runs as an independent stdio MCP process. Claude Code launches them at startup and routes tool calls to the appropriate server. Data is never joined server-side — Claude synthesises across both in the conversation.
+Each server runs as an independent stdio MCP process. Claude Code launches them at startup and routes tool calls to the appropriate server. Data is never joined server-side — Claude synthesises across all of them in the conversation.
 
 ```
 Claude Code ←─ MCP stdio ─→ mcp-garmin          ←─ HTTPS ─→ Garmin Connect
             ←─ MCP stdio ─→ mcp-myfitnesspal     ←─ HTTPS ─→ MyFitnessPal
+            ←─ MCP stdio ─→ mcp-hevy             ←─ HTTPS ─→ Hevy
 ```
 
-The two-server design means a MyFitnessPal scraping failure doesn't affect Garmin data.
+The multi-server design means a MyFitnessPal scraping failure doesn't affect Garmin or Hevy data.
 
 ## Setup
 
@@ -24,13 +26,15 @@ Each server has its own setup guide:
 
 - **[mcp-garmin setup](./mcp-garmin/README.md)** — credential-based auth, tokens stored in `~/.garminconnect`
 - **[mcp-myfitnesspal setup](./mcp-myfitnesspal/README.md)** — cookie-based auth, requires Playwright for initial login
+- **[mcp-hevy setup](./mcp-hevy/README.md)** — API key auth, generate one at hevy.com/settings?developer
 
 ### Quick overview
 
 1. `cd mcp-garmin && poetry install` then `poetry run python scripts/login.py`
 2. `cd mcp-myfitnesspal && poetry install && poetry run playwright install chromium` then `poetry run python scripts/login.py`
-3. Register both servers with Claude Code (see individual READMEs for the exact `claude mcp add` commands)
-4. Restart Claude Code
+3. `cd mcp-hevy && poetry install` (generate an API key at hevy.com/settings?developer)
+4. Register all three servers with Claude Code (see individual READMEs for the exact `claude mcp add` commands)
+5. Restart Claude Code
 
 ## Requirements
 
@@ -38,10 +42,11 @@ Each server has its own setup guide:
 - [Poetry](https://python-poetry.org/docs/#installation)
 - A Garmin Connect account
 - A MyFitnessPal account
+- A Hevy Pro account
 
 ## Example questions
 
-Once both servers are connected, you can ask Claude things like:
+Once all servers are connected, you can ask Claude things like:
 
 - *"How did my sleep quality correlate with my training load last week?"*
 - *"I ran a hard session on Tuesday — what did my nutrition look like that day?"*
@@ -80,6 +85,22 @@ Once both servers are connected, you can ask Claude things like:
 | `get_nutrition_summary` | `start_date`, `end_date` | Aggregated nutrition totals over a date range |
 | `get_weight_log` | `start_date`, `end_date` | Weight log entries |
 
+### mcp-hevy
+
+| Tool | Parameters | Description |
+|------|-----------|-------------|
+| `get_workouts` | `page`, `page_size` | Paginated list of logged workouts |
+| `get_workout_count` | none | Total number of workouts logged |
+| `get_workout` | `workout_id` | Full details for one workout |
+| `get_routines` | `page`, `page_size` | Paginated list of saved routines |
+| `get_routine` | `routine_id` | Full details for one routine |
+| `get_routine_folders` | `page`, `page_size` | Paginated list of routine folders |
+| `get_exercise_templates` | `page`, `page_size` | Paginated list of exercise templates |
+| `get_exercise_template` | `exercise_template_id` | Details for one exercise template |
+| `get_exercise_history` | `exercise_template_id` | Historical performance for one exercise |
+| `get_body_measurements` | `page`, `page_size` | Paginated list of body measurements |
+| `get_user_info` | none | Basic Hevy account info |
+
 All dates use ISO 8601 format: `YYYY-MM-DD`.
 
 ## Security
@@ -88,4 +109,4 @@ See [SECURITY.md](./SECURITY.md). Credentials are loaded from environment variab
 
 ## License
 
-Personal use only. Data is subject to [Garmin's Terms of Service](https://www.garmin.com/en-US/privacy/connect/policy/) and [MyFitnessPal's Terms of Service](https://www.myfitnesspal.com/terms-of-service).
+Personal use only. Data is subject to [Garmin's Terms of Service](https://www.garmin.com/en-US/privacy/connect/policy/), [MyFitnessPal's Terms of Service](https://www.myfitnesspal.com/terms-of-service), and [Hevy's Terms of Service](https://www.hevyapp.com/terms).
