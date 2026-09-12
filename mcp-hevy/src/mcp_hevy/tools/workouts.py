@@ -7,7 +7,7 @@ import httpx
 from mcp.types import TextContent, Tool
 
 from mcp_hevy.client import get_json
-from mcp_hevy.tools._shared import _id_tool, _json_result, _paginated_tool
+from mcp_hevy.tools._shared import _id_tool, _json_result, _paginated_tool, _url_encode_id
 from mcp_hevy.validation import validate_non_empty_str, validate_positive_int
 
 
@@ -25,7 +25,7 @@ def get_workout_count(client: httpx.Client, arguments: dict[str, Any]) -> list[T
 def get_workout(client: httpx.Client, arguments: dict[str, Any]) -> list[TextContent]:
     workout_id = arguments.get("workout_id", "")
     validate_non_empty_str(workout_id, "workout_id")
-    return _json_result(get_json(client, f"/v1/workouts/{workout_id}"))
+    return _json_result(get_json(client, f"/v1/workouts/{_url_encode_id(workout_id)}"))
 
 
 TOOLS: list[Tool] = [

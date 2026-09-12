@@ -59,6 +59,12 @@ def test_get_workout_calls_correct_path() -> None:
     assert json.loads(result[0].text) == {"id": "abc"}
 
 
+def test_get_workout_url_encodes_workout_id() -> None:
+    client = make_client({"id": "abc/def"})
+    DISPATCH["get_workout"](client, {"workout_id": "abc/def"})
+    client.get.assert_called_once_with("/v1/workouts/abc%2Fdef", params=None)
+
+
 def test_tools_list_contains_all_workout_tools() -> None:
     names = {t.name for t in TOOLS}
     assert names == {"get_workouts", "get_workout_count", "get_workout"}
