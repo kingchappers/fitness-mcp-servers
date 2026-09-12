@@ -42,9 +42,7 @@ async def test_call_tool_returns_error_for_unknown_tool() -> None:
 
 
 async def test_call_tool_returns_error_on_auth_failure() -> None:
-    with patch(
-        "mcp_hevy.server.get_client", side_effect=RuntimeError("HEVY_API_KEY not set")
-    ):
+    with patch("mcp_hevy.server.get_client", side_effect=RuntimeError("HEVY_API_KEY not set")):
         result = await server_module.call_tool("get_workouts", {})
     assert "HEVY_API_KEY" in result[0].text
 

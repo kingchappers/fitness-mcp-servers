@@ -16,9 +16,7 @@ def get_body_measurements(client: httpx.Client, arguments: dict[str, Any]) -> li
     page_size = validate_positive_int(
         arguments.get("page_size"), "page_size", default=5, maximum=10
     )
-    data = get_json(
-        client, "/v1/body_measurements", params={"page": page, "pageSize": page_size}
-    )
+    data = get_json(client, "/v1/body_measurements", params={"page": page, "pageSize": page_size})
     return _json_result(data)
 
 

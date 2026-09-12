@@ -16,17 +16,13 @@ def make_client(payload: object) -> MagicMock:
 def test_get_body_measurements_calls_correct_endpoint_with_defaults() -> None:
     client = make_client({"body_measurements": []})
     DISPATCH["get_body_measurements"](client, {})
-    client.get.assert_called_once_with(
-        "/v1/body_measurements", params={"page": 1, "pageSize": 5}
-    )
+    client.get.assert_called_once_with("/v1/body_measurements", params={"page": 1, "pageSize": 5})
 
 
 def test_get_body_measurements_uses_provided_page() -> None:
     client = make_client({"body_measurements": []})
     DISPATCH["get_body_measurements"](client, {"page": 2, "page_size": 8})
-    client.get.assert_called_once_with(
-        "/v1/body_measurements", params={"page": 2, "pageSize": 8}
-    )
+    client.get.assert_called_once_with("/v1/body_measurements", params={"page": 2, "pageSize": 8})
 
 
 def test_get_body_measurements_returns_json_payload() -> None:

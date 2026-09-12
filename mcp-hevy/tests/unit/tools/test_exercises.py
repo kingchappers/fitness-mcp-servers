@@ -18,9 +18,7 @@ def make_client(payload: object) -> MagicMock:
 def test_get_exercise_templates_calls_correct_endpoint_with_defaults() -> None:
     client = make_client({"exercise_templates": []})
     DISPATCH["get_exercise_templates"](client, {})
-    client.get.assert_called_once_with(
-        "/v1/exercise_templates", params={"page": 1, "pageSize": 5}
-    )
+    client.get.assert_called_once_with("/v1/exercise_templates", params={"page": 1, "pageSize": 5})
 
 
 def test_get_exercise_template_requires_id() -> None:

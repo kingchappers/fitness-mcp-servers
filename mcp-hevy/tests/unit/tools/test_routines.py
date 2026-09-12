@@ -49,17 +49,13 @@ def test_get_routine_url_encodes_routine_id() -> None:
 def test_get_routine_folders_calls_correct_endpoint_with_defaults() -> None:
     client = make_client({"routine_folders": []})
     DISPATCH["get_routine_folders"](client, {})
-    client.get.assert_called_once_with(
-        "/v1/routine_folders", params={"page": 1, "pageSize": 5}
-    )
+    client.get.assert_called_once_with("/v1/routine_folders", params={"page": 1, "pageSize": 5})
 
 
 def test_get_routine_folders_uses_provided_page() -> None:
     client = make_client({"routine_folders": []})
     DISPATCH["get_routine_folders"](client, {"page": 3, "page_size": 8})
-    client.get.assert_called_once_with(
-        "/v1/routine_folders", params={"page": 3, "pageSize": 8}
-    )
+    client.get.assert_called_once_with("/v1/routine_folders", params={"page": 3, "pageSize": 8})
 
 
 def test_tools_list_contains_all_routine_tools() -> None:
