@@ -61,14 +61,16 @@ def test_single_date_tool_rejects_bad_date(tool_name: str) -> None:
 
 def test_get_menstrual_cycle_calls_correct_method() -> None:
     client = MagicMock()
-    client.get_menstrual_data.return_value = []
+    client.get_menstrual_calendar_data.return_value = []
     DISPATCH["get_menstrual_cycle"](client, {"start_date": "2026-02-01", "end_date": "2026-02-28"})
-    client.get_menstrual_data.assert_called_once_with("2026-02-01", "2026-02-28")
+    client.get_menstrual_calendar_data.assert_called_once_with("2026-02-01", "2026-02-28")
 
 
 def test_get_menstrual_cycle_returns_json() -> None:
     client = MagicMock()
-    client.get_menstrual_data.return_value = [{"startDate": "2026-02-01", "phase": "menstrual"}]
+    client.get_menstrual_calendar_data.return_value = [
+        {"startDate": "2026-02-01", "phase": "menstrual"}
+    ]
     result = DISPATCH["get_menstrual_cycle"](
         client, {"start_date": "2026-02-01", "end_date": "2026-02-28"}
     )

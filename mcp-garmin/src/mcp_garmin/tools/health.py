@@ -36,7 +36,9 @@ def _single_date_handler(
 def get_menstrual_cycle(client: Garmin, arguments: dict[str, str]) -> list[TextContent]:
     validate_date(arguments["start_date"], param_name="start_date")
     validate_date(arguments["end_date"], param_name="end_date")
-    return _json_result(client.get_menstrual_data(arguments["start_date"], arguments["end_date"]))
+    return _json_result(
+        client.get_menstrual_calendar_data(arguments["start_date"], arguments["end_date"])
+    )
 
 
 TOOLS: list[Tool] = [
