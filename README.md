@@ -1,6 +1,6 @@
 # fitness-mcp-servers
 
-Two MCP servers that give Claude real-time access to your personal fitness and nutrition data. Ask Claude to analyse your training load, nutrition trends, sleep quality, body composition, or anything across both data sources — it synthesises the data in conversation.
+Three MCP servers that give Claude real-time access to your personal fitness and nutrition data. Ask Claude to analyse your training load, nutrition trends, sleep quality, body composition, or anything across all data sources — it synthesises the data in conversation.
 
 | Server | Data source | Reliability |
 |--------|------------|-------------|
@@ -10,7 +10,7 @@ Two MCP servers that give Claude real-time access to your personal fitness and n
 
 ## Architecture
 
-Each server runs as an independent stdio MCP process. Claude Code launches them at startup and routes tool calls to the appropriate server. Data is never joined server-side — Claude synthesises across both in the conversation.
+Each server runs as an independent stdio MCP process. Claude Code launches them at startup and routes tool calls to the appropriate server. Data is never joined server-side — Claude synthesises across all of them in the conversation.
 
 ```
 Claude Code ←─ MCP stdio ─→ mcp-garmin          ←─ HTTPS ─→ Garmin Connect
@@ -18,7 +18,7 @@ Claude Code ←─ MCP stdio ─→ mcp-garmin          ←─ HTTPS ─→ Garm
             ←─ MCP stdio ─→ mcp-hevy             ←─ HTTPS ─→ Hevy
 ```
 
-The two-server design means a MyFitnessPal scraping failure doesn't affect Garmin data.
+The multi-server design means a MyFitnessPal scraping failure doesn't affect Garmin or Hevy data.
 
 ## Setup
 
@@ -46,7 +46,7 @@ Each server has its own setup guide:
 
 ## Example questions
 
-Once both servers are connected, you can ask Claude things like:
+Once all servers are connected, you can ask Claude things like:
 
 - *"How did my sleep quality correlate with my training load last week?"*
 - *"I ran a hard session on Tuesday — what did my nutrition look like that day?"*
