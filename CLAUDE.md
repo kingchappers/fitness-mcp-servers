@@ -1,9 +1,9 @@
 # Fitness MCP Servers — Project Context
 
 ## What This Project Is
-Two separate Python MCP servers providing Claude with real-time access to personal fitness and
-nutrition data. Claude synthesises data across both servers in conversation rather than joining
-data server-side.
+Three separate Python MCP servers providing Claude with real-time access to personal fitness and
+nutrition data. Claude synthesises data across all three servers in conversation rather than
+joining data server-side.
 
 ## Repo Structure (target)
 ```
@@ -21,7 +21,15 @@ fitness-mcp/
 │   ├── tools.py               # MCP tool definitions
 │   ├── requirements.txt
 │   └── README.md
-└── mcp-config-example.json    # Example MCP config for both servers
+├── mcp-hevy/
+│   ├── src/mcp_hevy/
+│   │   ├── server.py          # MCP server entrypoint
+│   │   ├── client.py          # Hevy API client
+│   │   ├── validation.py      # Input validation helpers
+│   │   └── tools/             # MCP tool definitions
+│   ├── pyproject.toml
+│   └── README.md
+└── mcp-config-example.json    # Example MCP config for all three servers
 ```
 
 ## Server 1: mcp-garmin
@@ -248,7 +256,7 @@ Key requirements:
 | Decision | Choice | Reason |
 |----------|--------|--------|
 | Language | Python | Both required libraries are Python-only |
-| Two servers vs one | Two servers | MFP fragility isolated; independent failure, deployment, and updates |
+| Separate servers per source | Three servers | Each source's fragility/reliability isolated; independent failure, deployment, and updates |
 | MFP approach | Cookie scraping | Official API closed; no free alternatives exist |
 | Garmin approach | python-garminconnect | Official API is business-partners only; this is the standard personal solution |
 | Data synthesis | In Claude conversation | No need for server-side joins at this scale |

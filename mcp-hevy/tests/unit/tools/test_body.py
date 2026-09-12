@@ -23,9 +23,9 @@ def test_get_body_measurements_calls_correct_endpoint_with_defaults() -> None:
 
 def test_get_body_measurements_uses_provided_page() -> None:
     client = make_client({"body_measurements": []})
-    DISPATCH["get_body_measurements"](client, {"page": 2, "page_size": 15})
+    DISPATCH["get_body_measurements"](client, {"page": 2, "page_size": 8})
     client.get.assert_called_once_with(
-        "/v1/body_measurements", params={"page": 2, "pageSize": 15}
+        "/v1/body_measurements", params={"page": 2, "pageSize": 8}
     )
 
 

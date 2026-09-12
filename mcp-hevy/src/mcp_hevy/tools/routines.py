@@ -13,20 +13,23 @@ from mcp_hevy.validation import validate_non_empty_str, validate_positive_int
 
 def get_routines(client: httpx.Client, arguments: dict[str, Any]) -> list[TextContent]:
     page = validate_positive_int(arguments.get("page"), "page", default=1)
-    page_size = validate_positive_int(arguments.get("page_size"), "page_size", default=5)
+    page_size = validate_positive_int(
+        arguments.get("page_size"), "page_size", default=5, maximum=10
+    )
     data = get_json(client, "/v1/routines", params={"page": page, "pageSize": page_size})
     return _json_result(data)
 
 
 def get_routine(client: httpx.Client, arguments: dict[str, Any]) -> list[TextContent]:
-    routine_id = arguments.get("routine_id", "")
-    validate_non_empty_str(routine_id, "routine_id")
+    routine_id = validate_non_empty_str(arguments.get("routine_id"), "routine_id")
     return _json_result(get_json(client, f"/v1/routines/{_url_encode_id(routine_id)}"))
 
 
 def get_routine_folders(client: httpx.Client, arguments: dict[str, Any]) -> list[TextContent]:
     page = validate_positive_int(arguments.get("page"), "page", default=1)
-    page_size = validate_positive_int(arguments.get("page_size"), "page_size", default=5)
+    page_size = validate_positive_int(
+        arguments.get("page_size"), "page_size", default=5, maximum=10
+    )
     data = get_json(client, "/v1/routine_folders", params={"page": page, "pageSize": page_size})
     return _json_result(data)
 

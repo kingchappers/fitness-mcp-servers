@@ -58,17 +58,23 @@ def test_get_workout_response_size_for_single_detailed_workout() -> None:
 
 
 def test_get_exercise_history_response_size() -> None:
-    from mcp_hevy.tools.exercises import DISPATCH
+    from mcp_hevy.tools.exercises import DISPATCH as EXERCISES_DISPATCH
+    from mcp_hevy.tools.workouts import DISPATCH as WORKOUTS_DISPATCH
 
     client = get_client()
-    templates_result = DISPATCH["get_exercise_templates"](client, {"page": 1, "page_size": 1})
-    templates_data = json.loads(templates_result[0].text)
-    template_list = templates_data.get("exercise_templates", [])
-    if not template_list:
-        pytest.skip("No exercise templates available on this account")
-    template_id = template_list[0]["id"]
+    workouts_result = WORKOUTS_DISPATCH["get_workouts"](client, {"page": 1, "page_size": 1})
+    workouts_data = json.loads(workouts_result[0].text)
+    workout_list = workouts_data.get("workouts", [])
+    if not workout_list:
+        pytest.skip("No workouts logged on this account")
+    exercise_list = workout_list[0].get("exercises", [])
+    if not exercise_list:
+        pytest.skip("No exercises found on the account's most recent workout")
+    template_id = exercise_list[0]["exercise_template_id"]
 
-    result = DISPATCH["get_exercise_history"](client, {"exercise_template_id": template_id})
+    result = EXERCISES_DISPATCH["get_exercise_history"](
+        client, {"exercise_template_id": template_id}
+    )
     size = _char_size(result[0].text)
     print(f"\nget_exercise_history (id={template_id}) size: {size} chars")
     assert size < 100_000, f"get_exercise_history is {size} chars — must add _summarize_history"

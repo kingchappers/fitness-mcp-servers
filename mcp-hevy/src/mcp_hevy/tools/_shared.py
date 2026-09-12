@@ -21,7 +21,7 @@ def _paginated_tool(name: str, description: str) -> Tool:
                 "page": {"type": "integer", "description": "Page number (default 1)"},
                 "page_size": {
                     "type": "integer",
-                    "description": "Results per page (default 5)",
+                    "description": "Results per page (default 5, max 10)",
                 },
             },
         },

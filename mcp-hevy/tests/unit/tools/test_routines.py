@@ -56,9 +56,9 @@ def test_get_routine_folders_calls_correct_endpoint_with_defaults() -> None:
 
 def test_get_routine_folders_uses_provided_page() -> None:
     client = make_client({"routine_folders": []})
-    DISPATCH["get_routine_folders"](client, {"page": 3, "page_size": 20})
+    DISPATCH["get_routine_folders"](client, {"page": 3, "page_size": 8})
     client.get.assert_called_once_with(
-        "/v1/routine_folders", params={"page": 3, "pageSize": 20}
+        "/v1/routine_folders", params={"page": 3, "pageSize": 8}
     )
 
 

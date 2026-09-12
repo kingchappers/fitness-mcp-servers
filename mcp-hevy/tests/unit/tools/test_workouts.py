@@ -39,6 +39,18 @@ def test_get_workouts_rejects_invalid_page() -> None:
         DISPATCH["get_workouts"](client, {"page": 0})
 
 
+def test_get_workouts_rejects_page_size_above_max() -> None:
+    client = MagicMock()
+    with pytest.raises(ValueError, match="page_size"):
+        DISPATCH["get_workouts"](client, {"page_size": 11})
+
+
+def test_get_workouts_accepts_page_size_at_max() -> None:
+    client = make_client({"workouts": []})
+    DISPATCH["get_workouts"](client, {"page_size": 10})
+    client.get.assert_called_once_with("/v1/workouts", params={"page": 1, "pageSize": 10})
+
+
 def test_get_workout_count_calls_correct_path() -> None:
     client = make_client({"workout_count": 42})
     result = DISPATCH["get_workout_count"](client, {})

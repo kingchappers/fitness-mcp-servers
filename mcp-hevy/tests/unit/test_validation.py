@@ -30,10 +30,34 @@ def test_validate_positive_int_rejects_non_numeric() -> None:
         validate_positive_int("abc", "page", default=1)
 
 
+def test_validate_positive_int_rejects_bool() -> None:
+    with pytest.raises(ValueError, match="page"):
+        validate_positive_int(True, "page", default=1)
+
+
+def test_validate_positive_int_accepts_value_at_maximum() -> None:
+    assert validate_positive_int(10, "page_size", default=5, maximum=10) == 10
+
+
+def test_validate_positive_int_rejects_value_above_maximum() -> None:
+    with pytest.raises(ValueError, match="page_size"):
+        validate_positive_int(11, "page_size", default=5, maximum=10)
+
+
 def test_validate_non_empty_str_accepts_non_empty() -> None:
-    validate_non_empty_str("abc123", "workout_id")  # does not raise
+    assert validate_non_empty_str("abc123", "workout_id") == "abc123"
 
 
 def test_validate_non_empty_str_rejects_empty() -> None:
     with pytest.raises(ValueError, match="workout_id"):
         validate_non_empty_str("", "workout_id")
+
+
+def test_validate_non_empty_str_rejects_none() -> None:
+    with pytest.raises(ValueError, match="workout_id"):
+        validate_non_empty_str(None, "workout_id")
+
+
+def test_validate_non_empty_str_rejects_non_string() -> None:
+    with pytest.raises(ValueError, match="workout_id"):
+        validate_non_empty_str(123, "workout_id")

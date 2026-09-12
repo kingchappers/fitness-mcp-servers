@@ -13,7 +13,9 @@ from mcp_hevy.validation import validate_non_empty_str, validate_positive_int
 
 def get_workouts(client: httpx.Client, arguments: dict[str, Any]) -> list[TextContent]:
     page = validate_positive_int(arguments.get("page"), "page", default=1)
-    page_size = validate_positive_int(arguments.get("page_size"), "page_size", default=5)
+    page_size = validate_positive_int(
+        arguments.get("page_size"), "page_size", default=5, maximum=10
+    )
     data = get_json(client, "/v1/workouts", params={"page": page, "pageSize": page_size})
     return _json_result(data)
 
@@ -23,8 +25,7 @@ def get_workout_count(client: httpx.Client, arguments: dict[str, Any]) -> list[T
 
 
 def get_workout(client: httpx.Client, arguments: dict[str, Any]) -> list[TextContent]:
-    workout_id = arguments.get("workout_id", "")
-    validate_non_empty_str(workout_id, "workout_id")
+    workout_id = validate_non_empty_str(arguments.get("workout_id"), "workout_id")
     return _json_result(get_json(client, f"/v1/workouts/{_url_encode_id(workout_id)}"))
 
 
