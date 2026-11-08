@@ -301,6 +301,15 @@ bandit -r . -ll
 pip list --outdated
 ```
 
+### Accepted Vulnerabilities
+
+CI's pip-audit step skips advisory IDs listed in a server's `.pip-audit-ignore` file. Only add
+an ID when no fixed version can be installed, and record it here.
+
+| Server | Advisory | Package | Why accepted | Remove when |
+|--------|----------|---------|--------------|-------------|
+| mcp-myfitnesspal | PYSEC-2026-87 (CVE-2026-41066) | lxml 5.4.0 | XXE local-file read. `myfitnesspal` 2.1.2 (latest) pins `lxml<6`; it only parses HTML from myfitnesspal.com over HTTPS, so exploiting it needs a compromised MFP or a TLS man-in-the-middle | `myfitnesspal` allows `lxml>=6.1` |
+
 ### CI/CD Integration
 
 ```yaml

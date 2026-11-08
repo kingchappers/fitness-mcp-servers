@@ -88,7 +88,15 @@ jobs:
       - name: Bandit (SAST)
         run: cd "$SERVER_DIR" && poetry run bandit -r src/
       - name: pip-audit (dependency vulnerabilities)
-        run: cd "$SERVER_DIR" && poetry run pip-audit
+        run: |
+          cd "$SERVER_DIR"
+          ignore_flags=()
+          if [[ -f .pip-audit-ignore ]]; then
+            while read -r id; do
+              ignore_flags+=(--ignore-vuln "$id")
+            done < <(grep -vE '^\s*(#|$)' .pip-audit-ignore)
+          fi
+          poetry run pip-audit "${ignore_flags[@]}"
 
   codeql:
     runs-on: ubuntu-latest
