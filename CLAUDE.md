@@ -5,31 +5,53 @@ Three separate Python MCP servers providing Claude with real-time access to pers
 nutrition data. Claude synthesises data across all three servers in conversation rather than
 joining data server-side.
 
-## Repo Structure (target)
+## Fitness Insights Skill
+
+`.claude/skills/fitness-insights/` holds a skill that combines all three servers into a
+goal-aware progress review: it asks for fitness goals, pulls the right data, checks the
+trajectory and ranks what to improve. Claude Code loads it automatically inside this repo.
+
+**When a session in this repo involves reviewing the user's fitness data, first run
+`bash scripts/install-skill.sh --check`.** If it reports "not installed", offer to run
+`bash scripts/install-skill.sh` so the skill also works outside this repo (it symlinks into
+`~/.claude/skills`, so edits here stay live). For claude.ai, `--zip` builds an upload bundle in
+`dist/`.
+
+When adding or changing an MCP tool, update `.claude/skills/fitness-insights/data-catalog.md`
+to match.
+
+## Repo Structure
+Each server is a Poetry project with a `src/` layout and the same shape:
 ```
-fitness-mcp/
-├── CLAUDE.md                  # This file
+fitness-mcp-servers/
+├── CLAUDE.md                      # This file
+├── .claude/skills/fitness-insights/
+│   ├── SKILL.md                   # Review workflow
+│   ├── data-catalog.md            # Every tool, cost, source-of-truth rules
+│   └── goal-playbooks.md          # Per-goal KPIs, rates, levers
+├── scripts/install-skill.sh       # Install / check / zip the skill
 ├── mcp-garmin/
-│   ├── server.py              # MCP server entrypoint
-│   ├── garmin_client.py       # Garmin Connect integration
-│   ├── tools.py               # MCP tool definitions
-│   ├── requirements.txt
-│   └── README.md
+│   ├── scripts/login.py           # One-time interactive login → token cache
+│   ├── src/mcp_garmin/
+│   │   ├── server.py              # MCP server entrypoint
+│   │   ├── client.py              # Garmin Connect client
+│   │   ├── validation.py          # Input validation helpers
+│   │   └── tools/                 # activities, body, daily, goals, health, wellness
+│   ├── tests/
+│   └── pyproject.toml
 ├── mcp-myfitnesspal/
-│   ├── server.py              # MCP server entrypoint
-│   ├── mfp_client.py          # MFP integration
-│   ├── tools.py               # MCP tool definitions
-│   ├── requirements.txt
-│   └── README.md
-├── mcp-hevy/
-│   ├── src/mcp_hevy/
-│   │   ├── server.py          # MCP server entrypoint
-│   │   ├── client.py          # Hevy API client
-│   │   ├── validation.py      # Input validation helpers
-│   │   └── tools/             # MCP tool definitions
-│   ├── pyproject.toml
-│   └── README.md
-└── mcp-config-example.json    # Example MCP config for all three servers
+│   ├── scripts/login.py           # Playwright browser login → cookie file
+│   ├── src/mcp_myfitnesspal/
+│   │   ├── server.py, client.py, exceptions.py, validation.py
+│   │   └── tools/                 # body, nutrition
+│   ├── tests/
+│   └── pyproject.toml
+└── mcp-hevy/
+    ├── src/mcp_hevy/
+    │   ├── server.py, client.py, validation.py
+    │   └── tools/                 # body, exercises, routines, user, workouts
+    ├── tests/
+    └── pyproject.toml
 ```
 
 ## Server 1: mcp-garmin
@@ -40,19 +62,26 @@ fitness-mcp/
 - GitHub: https://github.com/cyberjunky/python-garminconnect
 
 ### Auth
-- Credential-based (email + password)
-- Tokens stored automatically in `~/.garminconnect`
-- Token refresh handled transparently by the library
-- Credentials should be loaded from environment variables, not hardcoded:
-  `GARMIN_EMAIL` and `GARMIN_PASSWORD`
+- One-time interactive login: `poetry run python scripts/login.py` (credentials prompted,
+  never stored on disk)
+- OAuth tokens saved to `~/.garminconnect` with `0600` permissions; the server reads only these
+- Re-run the login script when the server reports an auth error
 
-### Tools to Implement
-| Tool | Parameters | Description |
-|------|-----------|-------------|
-| `get_activities` | `start_date`, `end_date` | Workouts with type, duration, HR, distance |
-| `get_daily_stats` | `date` | Steps, calories burned, stress, active minutes |
-| `get_heart_rate` | `date` | Resting HR and HR data for the day |
-| `get_sleep` | `date` | Sleep duration, stages, score |
+### Tools (22)
+| Module | Tool | Parameters | Description |
+|--------|------|-----------|-------------|
+| activities | `get_activities` | `start_date`, `end_date` | Workouts with type, duration, HR, distance, pace |
+| activities | `get_activity_details` | `activity_id` | Splits, laps, HR zones (time series stripped) |
+| daily | `get_daily_stats` | `date` | Steps, calories burned, stress, active minutes |
+| daily | `get_heart_rate` | `date` | Resting HR and HR time series |
+| daily | `get_sleep` | `date` | Duration, stages, score (`_summarize_sleep`) |
+| daily | `get_body_battery` | `date` | Body battery charge and drain |
+| health | `get_hrv`, `get_stress`, `get_training_readiness`, `get_max_metrics`, `get_training_status`, `get_respiration`, `get_spo2` | `date` | HRV, stress, readiness, VO2 max / fitness age, training load, respiration, SpO2 |
+| health | `get_menstrual_cycle` | `start_date`, `end_date` | Cycle phase, symptoms, stats |
+| body | `get_body_composition`, `get_weigh_ins` | `start_date`, `end_date` | Weight, body fat %, BMI; weigh-in log |
+| goals | `get_endurance_score`, `get_race_predictions` | `start_date`, `end_date` | Endurance score; predicted race times |
+| goals | `get_personal_records` | — | All-time PRs |
+| wellness | `get_hydration` | `date` | Hydration intake |
 
 ### Reliability: HIGH
 Stable unofficial library. Unlikely to break without warning.
@@ -68,15 +97,16 @@ Stable unofficial library. Unlikely to break without warning.
 
 ### Auth
 - Uses browser session cookies (NOT username/password directly)
-- Cookies stored in a local file, path set via env var: `MFP_COOKIE_PATH`
-- Cookies must be manually refreshed when they expire
-- See library docs for how to extract cookies from browser
+- `poetry run python scripts/login.py` opens a Playwright browser for login and saves the
+  cookies as JSON (needs `poetry run playwright install chromium` once)
+- Cookie file path set via env var: `MFP_COOKIE_PATH`
+- Cookies expire; re-run the login script when the server reports an auth error
 
-### Tools to Implement
+### Tools
 | Tool | Parameters | Description |
 |------|-----------|-------------|
-| `get_nutrition_diary` | `date` | Full diary: meals, foods, calories, macros |
-| `get_nutrition_summary` | `start_date`, `end_date` | Aggregated nutrition over a date range |
+| `get_nutrition_diary` | `date` | Full diary: meals, foods, totals vs goals, water, `complete` flag |
+| `get_nutrition_summary` | `start_date`, `end_date` | One row per day (max 365 days; one scrape per day) |
 | `get_weight_log` | `start_date`, `end_date` | Weight entries over a date range |
 
 ### Reliability: LOW
@@ -99,7 +129,9 @@ Direct HTTP calls via `httpx` to the [Hevy Public API](https://api.hevyapp.com/d
 - No token/cookie refresh needed — the key does not expire from normal use
 - Loaded from environment variable, not hardcoded: `HEVY_API_KEY`
 
-### Tools to Implement
+### Tools
+Paginated tools: `page_size` defaults to 5 and is capped at 10.
+
 | Tool | Parameters | Description |
 |------|-----------|-------------|
 | `get_workouts` | `page`, `page_size` | Paginated list of logged workouts |
@@ -124,10 +156,9 @@ token/cookie refresh).
 
 ---
 
-## Build Order
-1. **mcp-garmin first** — stable, validate the MCP server pattern end-to-end
-2. **mcp-myfitnesspal second** — layer on once Garmin is confirmed working
-3. **mcp-hevy third** — simplest auth of the three, low risk once the pattern is proven
+## Status
+All three servers are implemented. Dependencies are managed with Poetry per server
+(`poetry install`, `poetry run pytest`). They were built in order Garmin → MyFitnessPal → Hevy.
 
 ---
 
@@ -210,7 +241,7 @@ print(len(json.dumps(data)))   # characters — aim for < 20,000
 **CRITICAL: Consult `SECURITY.md` before implementing.**
 
 Key requirements:
-- NEVER hardcode credentials (use environment variables)
+- NEVER hardcode credentials (use environment variables or the login scripts' token/cookie files)
 - Validate all date parameters (ISO 8601 format only)
 - Never use `eval()`, `exec()`, or `shell=True`
 - Set file permissions to 0600 for tokens and cookies
@@ -219,34 +250,13 @@ Key requirements:
 
 ---
 
-## MCP Config (add to your Claude Code or claude.ai MCP settings)
-```json
-{
-  "mcpServers": {
-    "garmin": {
-      "command": "python",
-      "args": ["/path/to/fitness-mcp/mcp-garmin/server.py"],
-      "env": {
-        "GARMIN_EMAIL": "your@email.com",
-        "GARMIN_PASSWORD": "yourpassword"
-      }
-    },
-    "myfitnesspal": {
-      "command": "python",
-      "args": ["/path/to/fitness-mcp/mcp-myfitnesspal/server.py"],
-      "env": {
-        "MFP_COOKIE_PATH": "/path/to/mfp-cookies.txt"
-      }
-    },
-    "hevy": {
-      "command": "python",
-      "args": ["/path/to/fitness-mcp/mcp-hevy/server.py"],
-      "env": {
-        "HEVY_API_KEY": "your-api-key-here"
-      }
-    }
-  }
-}
+## Registering the Servers with Claude Code
+Use absolute paths for both Poetry and the project directory; Claude Code launches servers in a
+subprocess that may not inherit your shell's `PATH`. See each server's README for details.
+```bash
+claude mcp add garmin -- /opt/homebrew/bin/poetry --directory /abs/path/mcp-garmin run mcp-garmin
+claude mcp add myfitnesspal -e MFP_COOKIE_PATH=/abs/path/cookies.json -- /opt/homebrew/bin/poetry --directory /abs/path/mcp-myfitnesspal run mcp-myfitnesspal
+claude mcp add hevy -e HEVY_API_KEY=your-api-key-here -- /opt/homebrew/bin/poetry --directory /abs/path/mcp-hevy run mcp-hevy
 ```
 
 ---
@@ -274,7 +284,5 @@ Key requirements:
 ## Environment Variables Reference
 | Variable | Server | Description |
 |----------|--------|-------------|
-| `GARMIN_EMAIL` | mcp-garmin | Garmin Connect account email |
-| `GARMIN_PASSWORD` | mcp-garmin | Garmin Connect account password |
-| `MFP_COOKIE_PATH` | mcp-myfitnesspal | Path to MFP browser session cookie file |
+| `MFP_COOKIE_PATH` | mcp-myfitnesspal | Path to the JSON cookie file written by `scripts/login.py` |
 | `HEVY_API_KEY` | mcp-hevy | Hevy personal API key (from hevy.com/settings?developer) |
