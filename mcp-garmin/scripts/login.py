@@ -27,16 +27,15 @@ def main() -> None:
     def prompt_mfa() -> str:
         return input("MFA code: ").strip()
 
+    TOKEN_STORE.mkdir(mode=0o700, parents=True, exist_ok=True)
+
     print("\nAuthenticating...")
     try:
         client = Garmin(email=email, password=password, prompt_mfa=prompt_mfa)
-        client.login()
+        client.login(str(TOKEN_STORE))  # saves tokens to the store on success
     except Exception as exc:
         print(f"Login failed: {exc}", file=sys.stderr)
         sys.exit(1)
-
-    TOKEN_STORE.mkdir(mode=0o700, parents=True, exist_ok=True)
-    client.garth.dump(str(TOKEN_STORE))
 
     for token_file in TOKEN_STORE.iterdir():
         token_file.chmod(0o600)
