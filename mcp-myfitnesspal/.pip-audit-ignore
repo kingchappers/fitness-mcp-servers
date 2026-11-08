@@ -1,0 +1,8 @@
+# Advisories pip-audit skips for this server, one ID per line. Each needs a reason
+# and a removal condition. Accepted risks are tracked in SECURITY.md.
+
+# lxml < 6.1 XXE local-file read (CVE-2026-41066, GHSA-vfmq-68hx-4jfw).
+# Blocked: myfitnesspal 2.1.2 (latest) requires lxml<6, so the fix can't be installed.
+# Exposure: lxml.html.document_fromstring only parses HTML from myfitnesspal.com over HTTPS.
+# Remove when myfitnesspal allows lxml>=6.1.
+PYSEC-2026-87
