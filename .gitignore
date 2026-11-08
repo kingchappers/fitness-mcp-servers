@@ -33,3 +33,6 @@ venv/
 
 # Git worktrees
 .worktrees/
+
+# Skill bundle for claude.ai upload
+dist/
